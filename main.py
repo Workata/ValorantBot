@@ -9,6 +9,7 @@ import crud
 import errors
 import messages
 from prompt import PROMPT
+from keep_alive import keep_alive
 
 TOKEN = os.environ['TOKEN']
 
@@ -27,7 +28,9 @@ async def on_message(message):
   # ! dont analyze bot messages
   if message.author == client.user:
     return 
+
   
+  # MAPS ACTIONS
   # add new valorant map to the database
   if message.content.startswith(f'{PROMPT}add_map'):
     # command format validation
@@ -63,6 +66,43 @@ async def on_message(message):
     feedback = crud.delete_map(map_to_delete)
     await message.channel.send(feedback)
 
+  # AGENTS ACTIONS
+  # add new valorant agent to the database
+  if message.content.startswith(f'{PROMPT}add_agent'):
+    # command format validation
+    msg_split = msg.split()
+    if len(msg_split) != 2:
+      await message.channel.send(errors.ERROR_MSG_ADD_AGENT_FORMAT)
+      return
+
+    agent_to_add = msg_split[1]
+    feedback = crud.add_agent(agent_to_add)
+    await message.channel.send(feedback)
+
+  # get current valorant agents
+  if message.content.startswith(f'{PROMPT}get_agents'):
+    # command format validation
+    msg_split = msg.split()
+    if len(msg_split) != 1:
+      await message.channel.send(errors.ERROR_MSG_GET_AGENTS_FORMAT)
+      return
+
+    feedback = crud.get_agents()
+    await message.channel.send(feedback)
+
+  # delete valorant agent from the database
+  if message.content.startswith(f'{PROMPT}delete_agent'):
+    # command format validation
+    msg_split = msg.split()
+    if len(msg_split) != 2:
+      await message.channel.send(errors.ERROR_MSG_DELETE_AGENT_FORMAT)
+      return
+
+    agent_to_delete = msg.split()[1]
+    feedback = crud.delete_agent(agent_to_delete)
+    await message.channel.send(feedback)
+
+
   # get info
   if message.content.startswith(f'{PROMPT}info'):
     await message.channel.send(messages.INFO_MSG)
@@ -71,5 +111,7 @@ async def on_message(message):
   if message.content.startswith(f'{PROMPT}help'):
     await message.channel.send(messages.HELP_MSG)
 
+
+keep_alive()
 client.run(TOKEN)
 

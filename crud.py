@@ -1,5 +1,7 @@
 from replit import db
 
+# MAPS
+
 def add_map(map_name: str):
   if "maps" in db.keys():
     current_maps = db["maps"]
@@ -9,7 +11,6 @@ def add_map(map_name: str):
     db["maps"] = [map_name] # create a list with a first map
   return f"New map '{map_name}' has been added to the database!"
   
-
 def get_maps():
   if "maps" in db.keys():
     current_maps = db["maps"]
@@ -17,7 +18,7 @@ def get_maps():
   else:   # no maps in the db
     return "There are no maps in the database!"
 
-def delete_map(map_name):
+def delete_map(map_name: str):
   if "maps" not in db.keys():
     return "There are no maps declared!"
   else:
@@ -27,11 +28,30 @@ def delete_map(map_name):
     current_maps.remove(map_name)
     return f"Map '{map_name}' has been successfully deleted!"
 
-def add_agent():
-  pass
+# AGENTS
+
+def add_agent(agent_name: str):
+  if "agents" in db.keys():
+    current_agents = db["agents"]
+    current_agents.append(agent_name)
+    db["agents"] = current_agents
+  else:   # no maps in the db
+    db["maps"] = [agent_name] # create a list with a first map
+  return f"New agent '{agent_name}' has been added to the database!"
 
 def get_agent():
-  return db.get("agents", None)
+  if "agents" in db.keys():
+    current_agents = db["agents"]
+    return ', '.join(current_agents)
+  else:   # no agents in the db
+    return "There are no agents in the database!"
 
-def delete_agent():
-  pass
+def delete_agent(agent_name: str):
+  if "agents" not in db.keys():
+    return "There are no agents declared!"
+  else:
+    current_agents = db["agents"]
+    if agent_name not in current_agents:
+      return "This agent is not listed within current agents!"
+    current_agents.remove(agent_name)
+    return f"Agent '{agent_name}' has been successfully deleted!"
