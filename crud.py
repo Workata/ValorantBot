@@ -36,10 +36,10 @@ def add_agent(agent_name: str):
     current_agents.append(agent_name)
     db["agents"] = current_agents
   else:   # no maps in the db
-    db["maps"] = [agent_name] # create a list with a first map
+    db["agents"] = [agent_name] # create a list with a first map
   return f"New agent '{agent_name}' has been added to the database!"
 
-def get_agent():
+def get_agents():
   if "agents" in db.keys():
     current_agents = db["agents"]
     return ', '.join(current_agents)
