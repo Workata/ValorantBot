@@ -12,6 +12,6 @@ HELP_MSG = f""" Available commands:
 """
 
 INFO_MSG = f""" Author: Workata
-Soruce code: <insert_link_to_github_here>
+Soruce code: https://github.com/Workata/ValorantBot
 License: MIT
 """
