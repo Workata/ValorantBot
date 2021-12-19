@@ -5,7 +5,10 @@
   message.author -> Member
   member.name -> The user’s username.
 
-  My user id: 501082895805448204
+  Clear DB:
+  from replit import db
+  del db["competitives"]
+
 """
 
 import discord
@@ -15,10 +18,8 @@ import errors
 import messages
 from prompt import PROMPT
 from keep_alive import keep_alive
-# import schedule
-# import time
-# from threading import Timer
 from timer import Timer
+from utils import get_time_dif
 
 
 TOKEN = os.environ['TOKEN']
@@ -29,19 +30,8 @@ client = discord.Client()
 async def on_ready():
   print(f'We have logged in as {client.user}')
 
-
-# ref: https://schedule.readthedocs.io/en/stable/examples.html#run-a-job-once
-# async def remind_about_competitive(message):
-#   # Do some work that only needs to happen once...
-#   user_id = '501082895805448204'
-#   await message.channel.send(f"<@{user_id}> competitive game is about to start!")
-#   # cancel job
-#   return schedule.CancelJob
-
-async def remind_about_competitive(message):
-  # Do some work that only needs to happen once...
-  user_id = '501082895805448204'
-  await message.channel.send(f"<@{user_id}> competitive game is about to start!")
+async def remind_about_competitive(message, content):
+  await message.channel.send(content)
 
 # on message actions here!
 @client.event
@@ -54,7 +44,7 @@ async def on_message(message):
     return 
 
   
-  # MAPS ACTIONS
+  # [MAPS]
   # add new valorant map to the database
   if message.content.startswith(f'{PROMPT}add_map'):
     # command format validation
@@ -90,7 +80,7 @@ async def on_message(message):
     feedback = crud.delete_map(map_to_delete)
     await message.channel.send(feedback)
 
-  # AGENTS ACTIONS
+  # [AGENTS]
   # add new valorant agent to the database
   if message.content.startswith(f'{PROMPT}add_agent'):
     # command format validation
@@ -122,11 +112,11 @@ async def on_message(message):
       await message.channel.send(errors.ERROR_MSG_DELETE_AGENT_FORMAT)
       return
 
-    agent_to_delete = msg.split()[1]
+    agent_to_delete = msg_split[1]
     feedback = crud.delete_agent(agent_to_delete)
     await message.channel.send(feedback)
 
-  
+  # [COMPETITIVES]
   # create competitive game time (hh:mm) person_1 person_2 etc
   if message.content.startswith(f'{PROMPT}create_competitive'):
     msg_split = msg.split()
@@ -134,37 +124,65 @@ async def on_message(message):
     feedback = crud.create_competitive(game_time)
     await message.channel.send(feedback)
 
+  # join competitive game
   if message.content.startswith(f'{PROMPT}join_competitive'):
+    """
+      COMMAND: join_competitive <game_id> <agent>
+    """
+    # command format validation
+    msg_split = msg.split()
+    if len(msg_split) != 3:
+      await message.channel.send(errors.ERROR_MSG_JOIN_COMPETITIVE_FORMAT)
+      return
+
     user_username = message.author.name
     user_id = message.author.id
     msg_split = msg.split()
-    game_time = msg_split[1]
+    game_id = msg_split[1]
     agent = msg_split[2]
-    feedback = crud.join_competitive(user_username, user_id, game_time, agent)
+
+    if agent not in crud.get_agents():
+      await message.channel.send(errors.ERROR_MSG_WRONG_AGENT)
+      return
+      
+    feedback = crud.join_competitive(user_username, user_id, game_id, agent)
     await message.channel.send(feedback)
 
+  # show all competitives games
   if message.content.startswith(f'{PROMPT}show_competitives'):
     feedback = crud.show_competitives()
     await message.channel.send(feedback)
 
-
-  if message.content.startswith(f'{PROMPT}ping'):
-    user_id = '501082895805448204'
+  # set reminder for competitive
+  if message.content.startswith(f'{PROMPT}remind_competitive'):
+    """
+      COMMAND: remind_competitive <game_id> <minutes_before>
+    """
     msg_split = msg.split()
-    game_time = msg_split[1]
-    # schedule.every().day.at(game_time).do(remind_about_competitive, message = message)
-    await message.channel.send(f"Ok, will ping at {game_time}")
+    game_id = msg_split[1]
+    minutes_before = msg_split[2]
+    user_ids = crud.get_players_ids_in_competitive(game_id)
+    competitive_time = crud.get_competitive_time(game_id)
 
-    # t = Timer(30.0, remind_about_competitive, args = [message])
-    # t.start()
-    timer = Timer(15, remind_about_competitive, message)
+    msg_content = ""
+    for user_id in user_ids:
+      msg_content += f"<@{user_id}> "
+    msg_content += f" competitive game is about to start ({competitive_time})!"
 
-    # check scheduled jobs
-    # while True:
-    #   schedule.run_pending()
-    #   time.sleep(1)
+    time_dif = get_time_dif(competitive_time)
+    trigger_time = time_dif - int(minutes_before)
+    if trigger_time <= 0:
+      await message.channel.send("This doesn't make any sense!")
+      return
+
+    # Create async timer that will trigger reminder after 'X' seconds
+    Timer(trigger_time*60, remind_about_competitive, message, msg_content) 
+
+    await message.channel.send(
+      f"Reminder will trigger {minutes_before} minutes before {competitive_time}.")
+
   
-
+  # [OTHERS]
   # get info
   if message.content.startswith(f'{PROMPT}info'):
     await message.channel.send(messages.INFO_MSG)

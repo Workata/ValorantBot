@@ -6,10 +6,13 @@ HELP_MSG = f""" Available commands:
 {PROMPT}delete_map <map_name> - deletes map from the database
 {PROMPT}get_maps - shows current maps in the database
 
-[Agents]
+[AGENTS]
 {PROMPT}add_agent <agent_name> - adds new agent to the database
 {PROMPT}delete_agent <agent_name> - deletes agent from the database
 {PROMPT}get_agents - shows current agents in the database
+
+[COMPETITIVES]
+
 
 [OTHERS]
 {PROMPT}info - shows more details about this bot
