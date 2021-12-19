@@ -141,4 +141,16 @@ def get_competitive_time(game_id):
       break
   return competitive_time
 
+def delete_competitive(game_id):
+  if "competitives" not in db.keys():
+    return "There are no competitives created yet!"
+
+  for competitive in db["competitives"]:
+    if game_id == competitive["id"]:
+      temp = db["competitives"]
+      temp.remove(competitive)
+      db["competitives"] = temp
+      return f"Competitive '{game_id}' has been removed from the database!"
+  return f"There are no competitives with id equall to '{game_id}'!"
+
 

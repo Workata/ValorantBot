@@ -147,11 +147,21 @@ async def on_message(message):
       
     feedback = crud.join_competitive(user_username, user_id, game_id, agent)
     await message.channel.send(feedback)
+    return
+
+  # delete competitive game
+  if message.content.startswith(f'{PROMPT}delete_competitive'):
+    msg_split = msg.split()
+    game_id = msg_split[1]
+    feedback = crud.delete_competitive(game_id)
+    await message.channel.send(feedback)
+    return
 
   # show all competitives games
   if message.content.startswith(f'{PROMPT}show_competitives'):
     feedback = crud.show_competitives()
     await message.channel.send(feedback)
+    return
 
   # set reminder for competitive
   if message.content.startswith(f'{PROMPT}remind_competitive'):
