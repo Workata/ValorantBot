@@ -55,3 +55,59 @@ def delete_agent(agent_name: str):
       return "This agent is not listed within current agents!"
     current_agents.remove(agent_name)
     return f"Agent '{agent_name}' has been successfully deleted!"
+
+# COMPETITIVES
+
+def create_competitive(time_string: str):
+  if "competitives" in db.keys():
+    current_competitives = db["competitives"]
+    current_competitives.append({"time": time_string, "players": 
+    {}})
+  else:
+    db["competitives"] = [{"time": time_string, "players": {}}]
+
+  return f"New game has been created! Start at {time_string}."
+
+def join_competitive(user_username, user_id, game_time, agent):
+  if "competitives" not in db.keys():
+    return "There are no competitives created yet!"
+  
+  for competitive in db["competitives"]:
+    if competitive["time"] == game_time:
+      players = competitive["players"]
+      if len(players.keys()) >= 5:
+        return f"There are no free slots for competitive at {game_time}!"
+      else:
+        players[user_id] = (user_username, agent)
+        competitive["players"] = players
+        return f"You ({user_username}) have been added to the competitive as {agent}!"
+
+def get_players_string(players):
+  if not players: # empty dict
+    return "There are no players in this competitive yet."
+
+  players_str = ""
+  for user_id in players:
+    player = players[user_id]
+    username = player[0]
+    agent = player[1]
+    players_str += f"{username} ({agent}), "
+  players_str = players_str[:-2]
+  return players_str
+
+# TODO show current competitives
+def show_competitives():
+  if "competitives" not in db.keys():
+    return "There are no competitives created yet!"
+
+  feedback = ""
+  iterator = 1
+  for competitive in db["competitives"]:
+    time_string = competitive["time"]
+    players_string = get_players_string(competitive["players"])
+    feedback += f"{iterator}. {time_string}  {players_string}\n"
+    iterator += 1
+  return feedback
+
+
+

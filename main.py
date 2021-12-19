@@ -1,6 +1,11 @@
 """
   TODO add docstring
   TODO (if needed) only specific user/users can add new maps/agents etc
+
+  message.author -> Member
+  member.name -> The user’s username.
+
+  My user id: 501082895805448204
 """
 
 import discord
@@ -10,6 +15,11 @@ import errors
 import messages
 from prompt import PROMPT
 from keep_alive import keep_alive
+# import schedule
+# import time
+# from threading import Timer
+from timer import Timer
+
 
 TOKEN = os.environ['TOKEN']
 
@@ -18,6 +28,20 @@ client = discord.Client()
 @client.event
 async def on_ready():
   print(f'We have logged in as {client.user}')
+
+
+# ref: https://schedule.readthedocs.io/en/stable/examples.html#run-a-job-once
+# async def remind_about_competitive(message):
+#   # Do some work that only needs to happen once...
+#   user_id = '501082895805448204'
+#   await message.channel.send(f"<@{user_id}> competitive game is about to start!")
+#   # cancel job
+#   return schedule.CancelJob
+
+async def remind_about_competitive(message):
+  # Do some work that only needs to happen once...
+  user_id = '501082895805448204'
+  await message.channel.send(f"<@{user_id}> competitive game is about to start!")
 
 # on message actions here!
 @client.event
@@ -102,6 +126,44 @@ async def on_message(message):
     feedback = crud.delete_agent(agent_to_delete)
     await message.channel.send(feedback)
 
+  
+  # create competitive game time (hh:mm) person_1 person_2 etc
+  if message.content.startswith(f'{PROMPT}create_competitive'):
+    msg_split = msg.split()
+    game_time = msg_split[1]
+    feedback = crud.create_competitive(game_time)
+    await message.channel.send(feedback)
+
+  if message.content.startswith(f'{PROMPT}join_competitive'):
+    user_username = message.author.name
+    user_id = message.author.id
+    msg_split = msg.split()
+    game_time = msg_split[1]
+    agent = msg_split[2]
+    feedback = crud.join_competitive(user_username, user_id, game_time, agent)
+    await message.channel.send(feedback)
+
+  if message.content.startswith(f'{PROMPT}show_competitives'):
+    feedback = crud.show_competitives()
+    await message.channel.send(feedback)
+
+
+  if message.content.startswith(f'{PROMPT}ping'):
+    user_id = '501082895805448204'
+    msg_split = msg.split()
+    game_time = msg_split[1]
+    # schedule.every().day.at(game_time).do(remind_about_competitive, message = message)
+    await message.channel.send(f"Ok, will ping at {game_time}")
+
+    # t = Timer(30.0, remind_about_competitive, args = [message])
+    # t.start()
+    timer = Timer(15, remind_about_competitive, message)
+
+    # check scheduled jobs
+    # while True:
+    #   schedule.run_pending()
+    #   time.sleep(1)
+  
 
   # get info
   if message.content.startswith(f'{PROMPT}info'):
@@ -114,4 +176,3 @@ async def on_message(message):
 
 keep_alive()
 client.run(TOKEN)
-
